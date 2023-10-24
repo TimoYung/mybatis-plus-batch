@@ -24,7 +24,8 @@ public enum SqlMethod {
     /**
      * 插入
      */
-    INSERT_BATCH_SELECTED("insertBatchSelected", "有选择性的批量插入", "<script>\nINSERT INTO %s %s VALUES %s\n</script>");
+    INSERT_BATCH_SELECTED("insertBatchSelected", "有选择性的批量插入", "<script>\nINSERT INTO %s %s VALUES %s\n</script>"),
+    INSERT_BATCH_SELECTED_WITH_TEMPLATE("insertBatchSelectedWithTemplate", "使用模板有选择性的批量插入", "<script>\nINSERT INTO %s %s VALUES %s\n</script>");
 
     private final String method;
     private final String desc;

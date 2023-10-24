@@ -11,7 +11,7 @@
 能够实现Mysql批量插入语法<br/><br/>
 
 * 缺点<br/>
-由于INSERT语句中需要插入哪些字段是由传入的数据列表的第一个元素决定的，所以会出现有些数据丢失的情况。
+只支持Mysql语法的批量插入方式。
 
 ### Get Start
 1. 引入依赖
@@ -36,20 +36,47 @@
 
     ```    
 
-3. 使用批量插入方法
+3. 使用批量插入方法（默认模板）
+
     ```java
         User user1 = new User();
-        user1.setId(IdWorker.getId());
         user1.setName("张三");
         user1.setAge(18);
 
         User user2 = new User();
-        user2.setId(IdWorker.getId());
+        user2.setName("李四");
+        user2.setAge(88);
+        //使用默认的批量插入条数：1000条/次
+        this.userService.insertBatch(Arrays.asList(user1, user2));
+   
+        //指定批量插入条数
+        this.userService.insertBatch(Arrays.asList(user1, user2), 500);
+
+    ```    
+
+4. 使用批量插入方法（指定模板）
+
+    ```java
+        User template = new User();
+        template.setName("AA");
+        template.setAge(20);
+        template.setNickName("小A")
+   
+        User user1 = new User();
+        user1.setName("张三");
+        user1.setAge(18);
+        user1.setNickName("小张")
+
+        User user2 = new User();
         user2.setName("李四");
         user2.setAge(88);
         
-        this.userService.insertBatch(Arrays.asList(user1, user2));
-
+        //使用默认的批量插入条数：1000条/次
+        this.userService.insertBatchWithTemplate(Arrays.asList(user1, user2), template);
+   
+   
+        //指定批量插入条数
+        this.userService.insertBatchWithTemplate(Arrays.asList(user1, user2), template, 500);
     ```    
 
 ### 特别说明

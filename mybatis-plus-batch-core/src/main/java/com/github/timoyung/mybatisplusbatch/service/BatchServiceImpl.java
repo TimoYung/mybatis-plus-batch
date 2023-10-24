@@ -15,13 +15,13 @@
  */
 package com.github.timoyung.mybatisplusbatch.service;
 
-import com.baomidou.mybatisplus.core.enums.SqlMethod;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.toolkit.Assert;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.core.toolkit.ExceptionUtils;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.baomidou.mybatisplus.extension.toolkit.SqlHelper;
+import com.github.timoyung.mybatisplusbatch.enums.SqlMethod;
 import lombok.SneakyThrows;
 import org.apache.ibatis.exceptions.PersistenceException;
 import org.apache.ibatis.logging.Log;
@@ -49,28 +49,32 @@ public class BatchServiceImpl<M extends BaseMapper<T>, T> extends ServiceImpl<M,
     @Override
     @Transactional
     public boolean insertBatch(List<T> entityList, int batchSize) {
-        String sqlStatement = getSqlStatement("realSaveBatch");
+        String sqlStatement = getSqlStatement(SqlMethod.INSERT_BATCH_SELECTED.getMethod());
+        if(entityList == null || entityList.isEmpty()){
+            return false;
+        }
+        return this.insertBatch(entityList, entityList.get(0), batchSize, sqlStatement);
+    }
 
+    @Override
+    @Transactional
+    public boolean insertBatchWithTemplate(List<T> entityList, T templateEntity, int batchSize) {
+        String sqlStatement = getSqlStatement(SqlMethod.INSERT_BATCH_SELECTED_WITH_TEMPLATE.getMethod());
         if(entityList == null || entityList.isEmpty()){
             return false;
         }
 
-        if(entityList.size() == 1){
-            T templateEntity = entityList.get(0);
-            return baseMapper.insert(templateEntity) > 0;
-        }
-
-        return this.executeBatch(this.entityClass, this.log, entityList, batchSize, (sqlSession, entity) -> {
-            sqlSession.insert(sqlStatement, entity);
-        });
+        Assert.isFalse(templateEntity == null, "templateEntity must not be null");
+        return this.insertBatch(entityList, templateEntity, batchSize, sqlStatement);
     }
 
 
-    public boolean executeBatch(Class<?> entityClass, Log log, Collection<T> list, int batchSize, BiConsumer<SqlSession, Collection<T>> consumer) {
+    private boolean executeBatch(Class<?> entityClass, Log log, Collection<T> list, T templateEntity, int batchSize, BiConsumer<SqlSession, Collection<T>> consumer) {
         Assert.isFalse(batchSize < 1, "batchSize must not be less than one");
         return !CollectionUtils.isEmpty(list) && executeBatch(entityClass, log, sqlSession -> {
             List<List<T>> lists = this.splitList(list, batchSize);
             for (List<T> ts : lists) {
+                ts.add(0, templateEntity);
                 consumer.accept(sqlSession, ts);
                 sqlSession.flushStatements();
             }
@@ -80,7 +84,7 @@ public class BatchServiceImpl<M extends BaseMapper<T>, T> extends ServiceImpl<M,
 
 
     @SneakyThrows
-    public boolean executeBatch(Class<?> entityClass, Log log, Consumer<SqlSession> consumer) {
+    private boolean executeBatch(Class<?> entityClass, Log log, Consumer<SqlSession> consumer) {
         SqlSessionFactory sqlSessionFactory = SqlHelper.sqlSessionFactory(entityClass);
         SqlSessionHolder sqlSessionHolder = (SqlSessionHolder) TransactionSynchronizationManager.getResource(sqlSessionFactory);
         boolean transaction = TransactionSynchronizationManager.isSynchronizationActive();
@@ -116,11 +120,11 @@ public class BatchServiceImpl<M extends BaseMapper<T>, T> extends ServiceImpl<M,
         }
     }
 
-    public String getSqlStatement(String method) {
+    private String getSqlStatement(String method) {
         return mapperClass.getName() + "." + method;
     }
 
-    public List<List<T>> splitList(Collection<T> collection, int size) {
+    private List<List<T>> splitList(Collection<T> collection, int size) {
         final List<List<T>> result = new ArrayList<>();
         ArrayList<T> subList = new ArrayList<>(size);
         for (T t : collection) {
@@ -132,5 +136,17 @@ public class BatchServiceImpl<M extends BaseMapper<T>, T> extends ServiceImpl<M,
         }
         result.add(subList);
         return result;
+    }
+
+    private boolean insertBatch(List<T> entityList, T templateEntity, int batchSize, String sqlStatement) {
+
+        if(entityList.size() == 1){
+            T entity = entityList.get(0);
+            return baseMapper.insert(entity) > 0;
+        }
+
+        return this.executeBatch(this.entityClass, this.log, entityList, templateEntity, batchSize, (sqlSession, entities) -> {
+            sqlSession.insert(sqlStatement, entities);
+        });
     }
 }

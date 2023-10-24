@@ -26,9 +26,39 @@ import java.util.List;
  */
 public interface IBatchService<T> extends IService<T> {
 
-    default boolean insertBatch(List<T> batchList){
-        return this.insertBatch(batchList, DEFAULT_BATCH_SIZE);
+    /**
+     * 批量插入，使用插入列表的第一个实体类作为模板
+     * @param entityList 待插入的实体列表
+     * @return
+     */
+    default boolean insertBatch(List<T> entityList){
+        return this.insertBatch(entityList, DEFAULT_BATCH_SIZE);
     };
 
-    boolean insertBatch(List<T> batchList, int batchSize);
+    /**
+     * 批量插入，使用插入列表的第一个实体类作为模板
+     * @param entityList 待插入的实体列表
+     * @param batchSize 指定批次插入条数
+     * @return
+     */
+    boolean insertBatch(List<T> entityList, int batchSize);
+
+    /**
+     * 批量插入，通过指定实体类作为插入模板
+     * @param entityList 待插入的实体列表
+     * @param templateEntity 使用做模板的实体类
+     * @return
+     */
+    default  boolean insertBatchWithTemplate(List<T> entityList, T templateEntity){
+        return insertBatchWithTemplate(entityList, templateEntity, DEFAULT_BATCH_SIZE);
+    }
+
+    /**
+     * 批量插入，通过指定实体类作为插入模板
+     * @param entityList 待插入的实体列表
+     * @param templateEntity 使用做模板的实体类
+     * @param batchSize 指定批次插入条数
+     * @return
+     */
+    boolean insertBatchWithTemplate(List<T> entityList, T templateEntity, int batchSize);
 }

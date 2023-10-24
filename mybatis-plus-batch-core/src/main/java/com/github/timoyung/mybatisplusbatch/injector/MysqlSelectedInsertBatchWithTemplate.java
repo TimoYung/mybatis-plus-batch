@@ -15,27 +15,32 @@
  */
 package com.github.timoyung.mybatisplusbatch.injector;
 
-
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.core.injector.AbstractMethod;
+import com.baomidou.mybatisplus.core.metadata.TableInfo;
+import com.baomidou.mybatisplus.core.metadata.TableInfoHelper;
+import com.baomidou.mybatisplus.core.toolkit.StringUtils;
+import com.baomidou.mybatisplus.core.toolkit.sql.SqlScriptUtils;
 import com.github.timoyung.mybatisplusbatch.enums.SqlMethod;
+import com.github.timoyung.mybatisplusbatch.toolkit.SqlScriptHelper;
+import org.apache.ibatis.executor.keygen.Jdbc3KeyGenerator;
 import org.apache.ibatis.executor.keygen.KeyGenerator;
 import org.apache.ibatis.executor.keygen.NoKeyGenerator;
-
+import org.apache.ibatis.mapping.MappedStatement;
+import org.apache.ibatis.mapping.SqlSource;
 
 /**
  * @author timoyung
  * @since 1.0.0
  */
-public class MysqlSelectedInsertBatch extends AbstractMysqlSelectedInsertBatch {
-    private static final String FOREACH_TPL = "<foreach collection=\"list\" item=\"item\" index=\"index\" separator=\",\">\n " +
-            "<if test=\"index != 0\"> %s </if> \n </foreach>";
+public class MysqlSelectedInsertBatchWithTemplate extends AbstractMysqlSelectedInsertBatch {
 
-    KeyGenerator keyGenerator = NoKeyGenerator.INSTANCE;
-    public MysqlSelectedInsertBatch() {
-        super(SqlMethod.INSERT_BATCH_SELECTED.getMethod());
+    public MysqlSelectedInsertBatchWithTemplate() {
+        super(SqlMethod.INSERT_BATCH_SELECTED_WITH_TEMPLATE.getMethod());
     }
 
     @Override
     protected SqlMethod getSqlMethod() {
-        return SqlMethod.INSERT_BATCH_SELECTED;
+        return SqlMethod.INSERT_BATCH_SELECTED_WITH_TEMPLATE;
     }
 }
