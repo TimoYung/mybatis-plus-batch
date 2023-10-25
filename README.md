@@ -17,7 +17,7 @@
 1. 引入依赖
     ```xml
             <dependency>
-                <groupId>com.github.timoyung</groupId>
+                <groupId>io.github.timoyung</groupId>
                 <artifactId>mybatis-plus-batch-core</artifactId>
                 <version>Latest Version</version>
             </dependency>
